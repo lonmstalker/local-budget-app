@@ -1,32 +1,39 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { FixedExpensesList } from '@/components/fixed-expenses/FixedExpensesList'
-import { FixedExpenseForm } from '@/components/fixed-expenses/FixedExpenseForm'
-import { FixedExpensesWidget } from '@/components/fixed-expenses/FixedExpensesWidget'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Plus } from 'lucide-react'
-import type { FixedExpense } from '@/types'
+import { useState } from "react";
+import { FixedExpensesList } from "@/components/fixed-expenses/FixedExpensesList";
+import { FixedExpenseForm } from "@/components/fixed-expenses/FixedExpenseForm";
+import { FixedExpensesWidget } from "@/components/fixed-expenses/FixedExpensesWidget";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Plus } from "lucide-react";
+import type { FixedExpense } from "@/types";
 
 export default function FixedExpensesPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const [editingExpense, setEditingExpense] = useState<FixedExpense | undefined>()
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<
+    FixedExpense | undefined
+  >();
 
   const handleEdit = (expense: FixedExpense) => {
-    setEditingExpense(expense)
-    setIsFormOpen(true)
-  }
+    setEditingExpense(expense);
+    setIsFormOpen(true);
+  };
 
   const handleSuccess = () => {
-    setIsFormOpen(false)
-    setEditingExpense(undefined)
-  }
+    setIsFormOpen(false);
+    setEditingExpense(undefined);
+  };
 
   const handleCancel = () => {
-    setIsFormOpen(false)
-    setEditingExpense(undefined)
-  }
+    setIsFormOpen(false);
+    setEditingExpense(undefined);
+  };
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -56,10 +63,12 @@ export default function FixedExpensesPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingExpense ? 'Редактировать расход' : 'Новый постоянный расход'}
+              {editingExpense
+                ? "Редактировать расход"
+                : "Новый постоянный расход"}
             </DialogTitle>
           </DialogHeader>
-          <FixedExpenseForm 
+          <FixedExpenseForm
             expense={editingExpense}
             onSuccess={handleSuccess}
             onCancel={handleCancel}
@@ -67,5 +76,5 @@ export default function FixedExpensesPage() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

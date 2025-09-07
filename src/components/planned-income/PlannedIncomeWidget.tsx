@@ -1,47 +1,56 @@
-'use client'
+"use client";
 
-import { usePlannedIncome } from '@/lib/hooks/usePlannedIncome'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
-import { formatCurrencyRUB } from '@/lib/utils/formatters'
-import { 
+import { usePlannedIncome } from "@/lib/hooks/usePlannedIncome";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { formatCurrencyRUB } from "@/lib/utils/formatters";
+import {
   TrendingUp,
   Calendar,
   CheckCircle2,
   Clock,
   DollarSign,
   Percent,
-  AlertCircle
-} from 'lucide-react'
-import { cn } from '@/lib/utils/cn'
+  AlertCircle,
+} from "lucide-react";
+import { cn } from "@/lib/utils/cn";
 
 export function PlannedIncomeWidget() {
-  const { 
+  const {
     incomes,
     calculateExpectedIncome,
     getUpcomingIncome,
     getPendingIncome,
-    getIncomeBySource
-  } = usePlannedIncome()
-  
-  const stats30Days = calculateExpectedIncome(30)
-  const stats90Days = calculateExpectedIncome(90)
-  const pendingIncomes = getPendingIncome()
-  const upcomingIncomes = getUpcomingIncome(7)
-  const topSources = getIncomeBySource().slice(0, 3)
-  
-  const confirmedThisMonth = incomes.filter(income => {
-    if (!income.isConfirmed || !income.receivedDate) return false
-    const receivedDate = new Date(income.receivedDate)
-    const now = new Date()
-    return receivedDate.getMonth() === now.getMonth() && 
-           receivedDate.getFullYear() === now.getFullYear()
-  })
-  
-  const totalConfirmed = confirmedThisMonth.reduce((sum, income) => 
-    sum + (income.receivedAmount || income.amount), 0
-  )
+    getIncomeBySource,
+  } = usePlannedIncome();
+
+  const stats30Days = calculateExpectedIncome(30);
+  const stats90Days = calculateExpectedIncome(90);
+  const pendingIncomes = getPendingIncome();
+  const upcomingIncomes = getUpcomingIncome(7);
+  const topSources = getIncomeBySource().slice(0, 3);
+
+  const confirmedThisMonth = incomes.filter((income) => {
+    if (!income.isConfirmed || !income.receivedDate) return false;
+    const receivedDate = new Date(income.receivedDate);
+    const now = new Date();
+    return (
+      receivedDate.getMonth() === now.getMonth() &&
+      receivedDate.getFullYear() === now.getFullYear()
+    );
+  });
+
+  const totalConfirmed = confirmedThisMonth.reduce(
+    (sum, income) => sum + (income.receivedAmount || income.amount),
+    0,
+  );
 
   return (
     <Card>
@@ -64,8 +73,13 @@ export function PlannedIncomeWidget() {
             <div className="text-xl font-bold text-green-600">
               {formatCurrencyRUB(stats30Days.totalExpected)}
             </div>
-            <Progress 
-              value={stats30Days.guaranteedIncome > 0 ? (stats30Days.guaranteedIncome / stats30Days.totalExpected) * 100 : 0} 
+            <Progress
+              value={
+                stats30Days.guaranteedIncome > 0
+                  ? (stats30Days.guaranteedIncome / stats30Days.totalExpected) *
+                    100
+                  : 0
+              }
               className="h-2"
             />
             <div className="text-xs text-muted-foreground">
@@ -81,8 +95,13 @@ export function PlannedIncomeWidget() {
             <div className="text-xl font-bold">
               {formatCurrencyRUB(stats90Days.totalExpected)}
             </div>
-            <Progress 
-              value={stats90Days.probableIncome > 0 ? (stats90Days.probableIncome / stats90Days.totalExpected) * 100 : 0} 
+            <Progress
+              value={
+                stats90Days.probableIncome > 0
+                  ? (stats90Days.probableIncome / stats90Days.totalExpected) *
+                    100
+                  : 0
+              }
               className="h-2"
             />
             <div className="text-xs text-muted-foreground">
@@ -101,7 +120,9 @@ export function PlannedIncomeWidget() {
               <span className="font-medium">{pendingIncomes.length}</span>
               {pendingIncomes.length > 0 && (
                 <Badge variant="outline" className="text-xs">
-                  {formatCurrencyRUB(pendingIncomes.reduce((sum, i) => sum + i.amount, 0))}
+                  {formatCurrencyRUB(
+                    pendingIncomes.reduce((sum, i) => sum + i.amount, 0),
+                  )}
                 </Badge>
               )}
             </div>
@@ -116,7 +137,9 @@ export function PlannedIncomeWidget() {
               <span className="font-medium">{upcomingIncomes.length}</span>
               {upcomingIncomes.length > 0 && (
                 <Badge variant="secondary" className="text-xs">
-                  {formatCurrencyRUB(upcomingIncomes.reduce((sum, i) => sum + i.amount, 0))}
+                  {formatCurrencyRUB(
+                    upcomingIncomes.reduce((sum, i) => sum + i.amount, 0),
+                  )}
                 </Badge>
               )}
             </div>
@@ -141,9 +164,14 @@ export function PlannedIncomeWidget() {
             <p className="text-sm font-medium mb-2">Основные источники</p>
             <div className="space-y-2">
               {topSources.map(({ source, amount }) => (
-                <div key={source} className="flex items-center justify-between text-sm">
+                <div
+                  key={source}
+                  className="flex items-center justify-between text-sm"
+                >
                   <span className="text-muted-foreground">{source}</span>
-                  <span className="font-medium">{formatCurrencyRUB(amount)}</span>
+                  <span className="font-medium">
+                    {formatCurrencyRUB(amount)}
+                  </span>
                 </div>
               ))}
             </div>
@@ -156,13 +184,22 @@ export function PlannedIncomeWidget() {
               <span className="text-muted-foreground">Средняя вероятность</span>
               <div className="flex items-center gap-2">
                 <Percent className="h-4 w-4 text-muted-foreground" />
-                <span className={cn(
-                  "font-medium",
-                  stats30Days.guaranteedIncome === stats30Days.totalExpected ? "text-green-600" :
-                  stats30Days.probableIncome >= stats30Days.totalExpected * 0.7 ? "text-yellow-600" :
-                  "text-orange-600"
-                )}>
-                  {Math.round((stats30Days.probableIncome / stats30Days.totalExpected) * 100)}%
+                <span
+                  className={cn(
+                    "font-medium",
+                    stats30Days.guaranteedIncome === stats30Days.totalExpected
+                      ? "text-green-600"
+                      : stats30Days.probableIncome >=
+                          stats30Days.totalExpected * 0.7
+                        ? "text-yellow-600"
+                        : "text-orange-600",
+                  )}
+                >
+                  {Math.round(
+                    (stats30Days.probableIncome / stats30Days.totalExpected) *
+                      100,
+                  )}
+                  %
                 </span>
               </div>
             </div>
@@ -170,5 +207,5 @@ export function PlannedIncomeWidget() {
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

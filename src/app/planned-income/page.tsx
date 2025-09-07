@@ -1,38 +1,46 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { PlannedIncomeList } from '@/components/planned-income/PlannedIncomeList'
-import { PlannedIncomeForm } from '@/components/planned-income/PlannedIncomeForm'
-import { PlannedIncomeWidget } from '@/components/planned-income/PlannedIncomeWidget'
-import { ConfirmIncomeDialog } from '@/components/planned-income/ConfirmIncomeDialog'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Plus } from 'lucide-react'
-import type { PlannedIncome } from '@/types'
+import { useState } from "react";
+import { PlannedIncomeList } from "@/components/planned-income/PlannedIncomeList";
+import { PlannedIncomeForm } from "@/components/planned-income/PlannedIncomeForm";
+import { PlannedIncomeWidget } from "@/components/planned-income/PlannedIncomeWidget";
+import { ConfirmIncomeDialog } from "@/components/planned-income/ConfirmIncomeDialog";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Plus } from "lucide-react";
+import type { PlannedIncome } from "@/types";
 
 export default function PlannedIncomePage() {
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const [editingIncome, setEditingIncome] = useState<PlannedIncome | undefined>()
-  const [confirmingIncome, setConfirmingIncome] = useState<PlannedIncome | null>(null)
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingIncome, setEditingIncome] = useState<
+    PlannedIncome | undefined
+  >();
+  const [confirmingIncome, setConfirmingIncome] =
+    useState<PlannedIncome | null>(null);
 
   const handleEdit = (income: PlannedIncome) => {
-    setEditingIncome(income)
-    setIsFormOpen(true)
-  }
+    setEditingIncome(income);
+    setIsFormOpen(true);
+  };
 
   const handleConfirm = (income: PlannedIncome) => {
-    setConfirmingIncome(income)
-  }
+    setConfirmingIncome(income);
+  };
 
   const handleSuccess = () => {
-    setIsFormOpen(false)
-    setEditingIncome(undefined)
-  }
+    setIsFormOpen(false);
+    setEditingIncome(undefined);
+  };
 
   const handleCancel = () => {
-    setIsFormOpen(false)
-    setEditingIncome(undefined)
-  }
+    setIsFormOpen(false);
+    setEditingIncome(undefined);
+  };
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -51,10 +59,7 @@ export default function PlannedIncomePage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <PlannedIncomeList 
-            onEdit={handleEdit}
-            onConfirm={handleConfirm}
-          />
+          <PlannedIncomeList onEdit={handleEdit} onConfirm={handleConfirm} />
         </div>
         <div>
           <PlannedIncomeWidget />
@@ -65,10 +70,12 @@ export default function PlannedIncomePage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingIncome ? 'Редактировать доход' : 'Новый планируемый доход'}
+              {editingIncome
+                ? "Редактировать доход"
+                : "Новый планируемый доход"}
             </DialogTitle>
           </DialogHeader>
-          <PlannedIncomeForm 
+          <PlannedIncomeForm
             income={editingIncome}
             onSuccess={handleSuccess}
             onCancel={handleCancel}
@@ -82,5 +89,5 @@ export default function PlannedIncomePage() {
         onOpenChange={(open) => !open && setConfirmingIncome(null)}
       />
     </div>
-  )
+  );
 }

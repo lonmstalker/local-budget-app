@@ -1,52 +1,70 @@
-'use client'
+"use client";
 
-import { useMemo } from 'react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { format, eachDayOfInterval, startOfWeek, endOfWeek } from 'date-fns'
-import { useQuery } from '@tanstack/react-query'
-import { getTransactionsByDateRange } from '@/lib/db'
-import { formatCurrency } from '@/lib/utils/currency'
+import { useMemo } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { format, eachDayOfInterval, startOfWeek, endOfWeek } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { getTransactionsByDateRange } from "@/lib/db";
+import { formatCurrency } from "@/lib/utils/currency";
 
 interface TrendsChartProps {
-  dateRange: { start: Date; end: Date }
+  dateRange: { start: Date; end: Date };
 }
 
 export function TrendsChart({ dateRange }: TrendsChartProps) {
   const { data: transactions = [] } = useQuery({
-    queryKey: ['transactions', 'trends', format(dateRange.start, 'yyyy-MM-dd'), format(dateRange.end, 'yyyy-MM-dd')],
-    queryFn: () => getTransactionsByDateRange(
-      format(dateRange.start, 'yyyy-MM-dd'),
-      format(dateRange.end, 'yyyy-MM-dd')
-    ),
-  })
-  
+    queryKey: [
+      "transactions",
+      "trends",
+      format(dateRange.start, "yyyy-MM-dd"),
+      format(dateRange.end, "yyyy-MM-dd"),
+    ],
+    queryFn: () =>
+      getTransactionsByDateRange(
+        format(dateRange.start, "yyyy-MM-dd"),
+        format(dateRange.end, "yyyy-MM-dd"),
+      ),
+  });
+
   const chartData = useMemo(() => {
-    const days = eachDayOfInterval({ start: dateRange.start, end: dateRange.end })
-    
-    let cumulativeBalance = 0
-    return days.map(day => {
-      const dayStr = format(day, 'yyyy-MM-dd')
-      const dayTransactions = transactions.filter(t => t.date === dayStr)
-      
+    const days = eachDayOfInterval({
+      start: dateRange.start,
+      end: dateRange.end,
+    });
+
+    let cumulativeBalance = 0;
+    return days.map((day) => {
+      const dayStr = format(day, "yyyy-MM-dd");
+      const dayTransactions = transactions.filter((t) => t.date === dayStr);
+
       const dayIncome = dayTransactions
-        .filter(t => t.type === 'income')
-        .reduce((sum, t) => sum + t.amount, 0)
-      
+        .filter((t) => t.type === "income")
+        .reduce((sum, t) => sum + t.amount, 0);
+
       const dayExpenses = dayTransactions
-        .filter(t => t.type === 'expense')
-        .reduce((sum, t) => sum + t.amount, 0)
-      
-      cumulativeBalance += (dayIncome - dayExpenses)
-      
+        .filter((t) => t.type === "expense")
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      cumulativeBalance += dayIncome - dayExpenses;
+
       return {
-        date: format(day, 'MMM d'),
+        date: format(day, "MMM d"),
         income: dayIncome,
         expenses: dayExpenses,
-        balance: cumulativeBalance
-      }
-    })
-  }, [transactions, dateRange])
-  
+        balance: cumulativeBalance,
+      };
+    });
+  }, [transactions, dateRange]);
+
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -58,51 +76,47 @@ export function TrendsChart({ dateRange }: TrendsChartProps) {
             </p>
           ))}
         </div>
-      )
+      );
     }
-    return null
-  }
-  
+    return null;
+  };
+
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={chartData}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-        <XAxis 
-          dataKey="date" 
+        <XAxis dataKey="date" className="text-xs" interval="preserveStartEnd" />
+        <YAxis
           className="text-xs"
-          interval="preserveStartEnd"
-        />
-        <YAxis 
-          className="text-xs" 
           tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
         />
         <Tooltip content={<CustomTooltip />} />
         <Legend />
-        <Line 
-          type="monotone" 
-          dataKey="income" 
-          stroke="#10b981" 
+        <Line
+          type="monotone"
+          dataKey="income"
+          stroke="#10b981"
           name="Income"
           strokeWidth={2}
           dot={false}
         />
-        <Line 
-          type="monotone" 
-          dataKey="expenses" 
-          stroke="#ef4444" 
+        <Line
+          type="monotone"
+          dataKey="expenses"
+          stroke="#ef4444"
           name="Expenses"
           strokeWidth={2}
           dot={false}
         />
-        <Line 
-          type="monotone" 
-          dataKey="balance" 
-          stroke="#3b82f6" 
+        <Line
+          type="monotone"
+          dataKey="balance"
+          stroke="#3b82f6"
           name="Balance"
           strokeWidth={2}
           dot={false}
         />
       </LineChart>
     </ResponsiveContainer>
-  )
+  );
 }

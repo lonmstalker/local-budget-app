@@ -1,48 +1,63 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { usePlannedIncome } from '@/lib/hooks/usePlannedIncome'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { formatCurrencyRUB } from '@/lib/utils/formatters'
-import { toast } from 'sonner'
-import type { PlannedIncome } from '@/types'
+import { useState } from "react";
+import { usePlannedIncome } from "@/lib/hooks/usePlannedIncome";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { formatCurrencyRUB } from "@/lib/utils/formatters";
+import { toast } from "sonner";
+import type { PlannedIncome } from "@/types";
 
 interface ConfirmIncomeDialogProps {
-  income: PlannedIncome | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  income: PlannedIncome | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function ConfirmIncomeDialog({ income, open, onOpenChange }: ConfirmIncomeDialogProps) {
-  const { confirmReceived } = usePlannedIncome()
-  const [receivedAmount, setReceivedAmount] = useState<number>(income?.amount || 0)
-  const [receivedDate, setReceivedDate] = useState(new Date().toISOString().split('T')[0])
+export function ConfirmIncomeDialog({
+  income,
+  open,
+  onOpenChange,
+}: ConfirmIncomeDialogProps) {
+  const { confirmReceived } = usePlannedIncome();
+  const [receivedAmount, setReceivedAmount] = useState<number>(
+    income?.amount || 0,
+  );
+  const [receivedDate, setReceivedDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
 
   const handleConfirm = async () => {
-    if (!income) return
-    
+    if (!income) return;
+
     if (receivedAmount <= 0) {
-      toast.error('Введите корректную сумму')
-      return
+      toast.error("Введите корректную сумму");
+      return;
     }
 
     try {
       await confirmReceived.mutateAsync({
         incomeId: income.id,
         receivedAmount,
-        receivedDate
-      })
-      toast.success('Доход подтвержден')
-      onOpenChange(false)
+        receivedDate,
+      });
+      toast.success("Доход подтвержден");
+      onOpenChange(false);
     } catch (error) {
-      toast.error('Произошла ошибка')
+      toast.error("Произошла ошибка");
     }
-  }
+  };
 
-  if (!income) return null
+  if (!income) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -53,11 +68,13 @@ export function ConfirmIncomeDialog({ income, open, onOpenChange }: ConfirmIncom
             Подтвердите получение планируемого дохода "{income.name}"
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label>Ожидаемая сумма</Label>
-            <div className="text-lg font-semibold">{formatCurrencyRUB(income.amount)}</div>
+            <div className="text-lg font-semibold">
+              {formatCurrencyRUB(income.amount)}
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -66,7 +83,9 @@ export function ConfirmIncomeDialog({ income, open, onOpenChange }: ConfirmIncom
               id="receivedAmount"
               type="number"
               value={receivedAmount}
-              onChange={(e) => setReceivedAmount(parseFloat(e.target.value) || 0)}
+              onChange={(e) =>
+                setReceivedAmount(parseFloat(e.target.value) || 0)
+              }
               placeholder="0"
               min="0"
               step="0.01"
@@ -75,9 +94,16 @@ export function ConfirmIncomeDialog({ income, open, onOpenChange }: ConfirmIncom
               <p className="text-sm text-muted-foreground">
                 Разница: {formatCurrencyRUB(receivedAmount - income.amount)}
                 {receivedAmount > income.amount ? (
-                  <span className="text-green-600"> (+{((receivedAmount / income.amount - 1) * 100).toFixed(1)}%)</span>
+                  <span className="text-green-600">
+                    {" "}
+                    (+{((receivedAmount / income.amount - 1) * 100).toFixed(1)}
+                    %)
+                  </span>
                 ) : (
-                  <span className="text-red-600"> ({((receivedAmount / income.amount - 1) * 100).toFixed(1)}%)</span>
+                  <span className="text-red-600">
+                    {" "}
+                    ({((receivedAmount / income.amount - 1) * 100).toFixed(1)}%)
+                  </span>
                 )}
               </p>
             )}
@@ -93,10 +119,17 @@ export function ConfirmIncomeDialog({ income, open, onOpenChange }: ConfirmIncom
             />
           </div>
 
-          {income.frequency !== 'once' && (
+          {income.frequency !== "once" && (
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">
-                После подтверждения будет создана операция дохода и установлена следующая дата ожидания согласно периодичности ({income.frequency === 'monthly' ? 'ежемесячно' : income.frequency === 'weekly' ? 'еженедельно' : 'раз в 2 недели'}).
+                После подтверждения будет создана операция дохода и установлена
+                следующая дата ожидания согласно периодичности (
+                {income.frequency === "monthly"
+                  ? "ежемесячно"
+                  : income.frequency === "weekly"
+                    ? "еженедельно"
+                    : "раз в 2 недели"}
+                ).
               </p>
             </div>
           )}
@@ -106,8 +139,8 @@ export function ConfirmIncomeDialog({ income, open, onOpenChange }: ConfirmIncom
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Отмена
           </Button>
-          <Button 
-            onClick={handleConfirm} 
+          <Button
+            onClick={handleConfirm}
             disabled={confirmReceived.isPending || receivedAmount <= 0}
           >
             Подтвердить получение
@@ -115,5 +148,5 @@ export function ConfirmIncomeDialog({ income, open, onOpenChange }: ConfirmIncom
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

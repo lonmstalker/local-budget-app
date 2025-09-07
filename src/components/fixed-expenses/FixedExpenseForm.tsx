@@ -1,87 +1,129 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useFixedExpenses } from '@/lib/hooks/useFixedExpenses'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { toast } from 'sonner'
-import type { FixedExpense } from '@/types'
+import { useState } from "react";
+import { useFixedExpenses } from "@/lib/hooks/useFixedExpenses";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { toast } from "sonner";
+import type { FixedExpense } from "@/types";
 
 interface FixedExpenseFormProps {
-  expense?: FixedExpense
-  onSuccess?: () => void
-  onCancel?: () => void
+  expense?: FixedExpense;
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
 const COLORS = [
-  '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16',
-  '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9',
-  '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
-  '#ec4899', '#f43f5e'
-]
+  "#ef4444",
+  "#f97316",
+  "#f59e0b",
+  "#eab308",
+  "#84cc16",
+  "#22c55e",
+  "#10b981",
+  "#14b8a6",
+  "#06b6d4",
+  "#0ea5e9",
+  "#3b82f6",
+  "#6366f1",
+  "#8b5cf6",
+  "#a855f7",
+  "#d946ef",
+  "#ec4899",
+  "#f43f5e",
+];
 
 const CATEGORIES = [
-  'Жилье', 'Коммунальные услуги', 'Интернет и связь', 'Транспорт',
-  'Страхование', 'Подписки', 'Кредиты', 'Образование', 'Здоровье',
-  'Развлечения', 'Спорт', 'Другое'
-]
+  "Жилье",
+  "Коммунальные услуги",
+  "Интернет и связь",
+  "Транспорт",
+  "Страхование",
+  "Подписки",
+  "Кредиты",
+  "Образование",
+  "Здоровье",
+  "Развлечения",
+  "Спорт",
+  "Другое",
+];
 
-export function FixedExpenseForm({ expense, onSuccess, onCancel }: FixedExpenseFormProps) {
-  const { addExpense, updateExpense } = useFixedExpenses()
+export function FixedExpenseForm({
+  expense,
+  onSuccess,
+  onCancel,
+}: FixedExpenseFormProps) {
+  const { addExpense, updateExpense } = useFixedExpenses();
   const [formData, setFormData] = useState({
-    name: expense?.name || '',
+    name: expense?.name || "",
     amount: expense?.amount || 0,
     category: expense?.category || CATEGORIES[0],
     dayOfMonth: expense?.dayOfMonth || 1,
-    frequency: expense?.frequency || 'monthly' as FixedExpense['frequency'],
+    frequency: expense?.frequency || ("monthly" as FixedExpense["frequency"]),
     reminder: expense?.reminder || true,
     reminderDays: expense?.reminderDays || 3,
     autopay: expense?.autopay || false,
-    notes: expense?.notes || '',
+    notes: expense?.notes || "",
     color: expense?.color || COLORS[0],
-    priority: expense?.priority || 'medium' as FixedExpense['priority']
-  })
+    priority: expense?.priority || ("medium" as FixedExpense["priority"]),
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     if (!formData.name || formData.amount <= 0) {
-      toast.error('Заполните обязательные поля')
-      return
+      toast.error("Заполните обязательные поля");
+      return;
     }
 
     try {
       if (expense) {
         await updateExpense.mutateAsync({
           id: expense.id,
-          updates: formData
-        })
-        toast.success('Расход обновлен')
+          updates: formData,
+        });
+        toast.success("Расход обновлен");
       } else {
         await addExpense.mutateAsync({
           ...formData,
-          isActive: true
-        })
-        toast.success('Расход добавлен')
+          isActive: true,
+        });
+        toast.success("Расход добавлен");
       }
-      onSuccess?.()
+      onSuccess?.();
     } catch (error) {
-      toast.error('Произошла ошибка')
+      toast.error("Произошла ошибка");
     }
-  }
+  };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{expense ? 'Редактировать расход' : 'Новый постоянный расход'}</CardTitle>
+        <CardTitle>
+          {expense ? "Редактировать расход" : "Новый постоянный расход"}
+        </CardTitle>
         <CardDescription>
-          {expense ? 'Измените параметры постоянного расхода' : 'Добавьте новый регулярный платеж'}
+          {expense
+            ? "Измените параметры постоянного расхода"
+            : "Добавьте новый регулярный платеж"}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -92,7 +134,9 @@ export function FixedExpenseForm({ expense, onSuccess, onCancel }: FixedExpenseF
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="Например: Квартира"
                 required
               />
@@ -104,7 +148,12 @@ export function FixedExpenseForm({ expense, onSuccess, onCancel }: FixedExpenseF
                 id="amount"
                 type="number"
                 value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    amount: parseFloat(e.target.value) || 0,
+                  })
+                }
                 placeholder="0"
                 min="0"
                 step="0.01"
@@ -118,14 +167,18 @@ export function FixedExpenseForm({ expense, onSuccess, onCancel }: FixedExpenseF
               <Label htmlFor="category">Категория</Label>
               <Select
                 value={formData.category}
-                onValueChange={(value) => setFormData({ ...formData, category: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, category: value })
+                }
               >
                 <SelectTrigger id="category">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIES.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  {CATEGORIES.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -135,7 +188,12 @@ export function FixedExpenseForm({ expense, onSuccess, onCancel }: FixedExpenseF
               <Label htmlFor="priority">Приоритет</Label>
               <Select
                 value={formData.priority}
-                onValueChange={(value) => setFormData({ ...formData, priority: value as FixedExpense['priority'] })}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    priority: value as FixedExpense["priority"],
+                  })
+                }
               >
                 <SelectTrigger id="priority">
                   <SelectValue />
@@ -155,7 +213,12 @@ export function FixedExpenseForm({ expense, onSuccess, onCancel }: FixedExpenseF
               <Label htmlFor="frequency">Периодичность</Label>
               <Select
                 value={formData.frequency}
-                onValueChange={(value) => setFormData({ ...formData, frequency: value as FixedExpense['frequency'] })}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    frequency: value as FixedExpense["frequency"],
+                  })
+                }
               >
                 <SelectTrigger id="frequency">
                   <SelectValue />
@@ -175,7 +238,12 @@ export function FixedExpenseForm({ expense, onSuccess, onCancel }: FixedExpenseF
                 id="dayOfMonth"
                 type="number"
                 value={formData.dayOfMonth}
-                onChange={(e) => setFormData({ ...formData, dayOfMonth: parseInt(e.target.value) || 1 })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    dayOfMonth: parseInt(e.target.value) || 1,
+                  })
+                }
                 min="1"
                 max="31"
                 required
@@ -187,14 +255,16 @@ export function FixedExpenseForm({ expense, onSuccess, onCancel }: FixedExpenseF
             <Label htmlFor="color">Цвет</Label>
             <RadioGroup
               value={formData.color}
-              onValueChange={(value) => setFormData({ ...formData, color: value })}
+              onValueChange={(value) =>
+                setFormData({ ...formData, color: value })
+              }
               className="flex gap-2 flex-wrap"
             >
               {COLORS.map((color) => (
                 <RadioGroupItem
                   key={color}
                   value={color}
-                  id={`fixed-color-${color.replace('#', '')}`}
+                  id={`fixed-color-${color.replace("#", "")}`}
                   className="size-8 rounded-full border-2 border-transparent data-[state=checked]:border-primary"
                   style={{ backgroundColor: color }}
                   aria-label={`Цвет ${color}`}
@@ -214,7 +284,9 @@ export function FixedExpenseForm({ expense, onSuccess, onCancel }: FixedExpenseF
               <Switch
                 id="autopay"
                 checked={formData.autopay}
-                onCheckedChange={(checked) => setFormData({ ...formData, autopay: checked })}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, autopay: checked })
+                }
               />
             </div>
 
@@ -228,7 +300,9 @@ export function FixedExpenseForm({ expense, onSuccess, onCancel }: FixedExpenseF
               <Switch
                 id="reminder"
                 checked={formData.reminder}
-                onCheckedChange={(checked) => setFormData({ ...formData, reminder: checked })}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, reminder: checked })
+                }
               />
             </div>
 
@@ -239,7 +313,12 @@ export function FixedExpenseForm({ expense, onSuccess, onCancel }: FixedExpenseF
                   id="reminderDays"
                   type="number"
                   value={formData.reminderDays}
-                  onChange={(e) => setFormData({ ...formData, reminderDays: parseInt(e.target.value) || 1 })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      reminderDays: parseInt(e.target.value) || 1,
+                    })
+                  }
                   min="1"
                   max="30"
                 />
@@ -252,7 +331,9 @@ export function FixedExpenseForm({ expense, onSuccess, onCancel }: FixedExpenseF
             <Textarea
               id="notes"
               value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, notes: e.target.value })
+              }
               placeholder="Дополнительная информация..."
               rows={3}
             />
@@ -264,12 +345,15 @@ export function FixedExpenseForm({ expense, onSuccess, onCancel }: FixedExpenseF
                 Отмена
               </Button>
             )}
-            <Button type="submit" disabled={addExpense.isPending || updateExpense.isPending}>
-              {expense ? 'Сохранить' : 'Добавить'}
+            <Button
+              type="submit"
+              disabled={addExpense.isPending || updateExpense.isPending}
+            >
+              {expense ? "Сохранить" : "Добавить"}
             </Button>
           </div>
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

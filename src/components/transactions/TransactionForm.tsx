@@ -1,109 +1,130 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select'
-import { Calendar } from 'lucide-react'
-import { format } from 'date-fns'
-import { useAddTransaction, useUpdateTransaction } from '@/lib/hooks/useTransactions'
-import { useQuery } from '@tanstack/react-query'
-import { getAllCategories, getAllAccounts } from '@/lib/db'
-import { autoDetectCategory, parseAmount, suggestTags } from '@/lib/utils/categories'
-import { parseCurrency } from '@/lib/utils/currency'
-import type { Transaction } from '@/types'
-import { toast } from 'sonner'
+import { useState, useEffect } from "react";
+import { LoadingButton } from "@/components/ui/loading-button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar } from "lucide-react";
+import { format } from "date-fns";
+import {
+  useAddTransaction,
+  useUpdateTransaction,
+} from "@/lib/hooks/useTransactions";
+import { useQuery } from "@tanstack/react-query";
+import { getAllCategories, getAllAccounts } from "@/lib/db";
+import {
+  autoDetectCategory,
+  parseAmount,
+  suggestTags,
+} from "@/lib/utils/categories";
+import { parseCurrency } from "@/lib/utils/currency";
+import type { Transaction } from "@/types";
+import { toast } from "sonner";
 
 interface TransactionFormProps {
-  transaction?: Transaction
-  onSuccess?: () => void
-  onCancel?: () => void
+  transaction?: Transaction;
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-export function TransactionForm({ transaction, onSuccess, onCancel }: TransactionFormProps) {
-  const addTransaction = useAddTransaction()
-  const updateTransaction = useUpdateTransaction()
+export function TransactionForm({
+  transaction,
+  onSuccess,
+  onCancel,
+}: TransactionFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
+  const addTransaction = useAddTransaction();
+  const updateTransaction = useUpdateTransaction();
   const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
+    queryKey: ["categories"],
     queryFn: getAllCategories,
-  })
+  });
   const { data: accounts = [] } = useQuery({
-    queryKey: ['accounts'],
+    queryKey: ["accounts"],
     queryFn: getAllAccounts,
-  })
-  
+  });
+
   const [formData, setFormData] = useState({
-    amount: transaction?.amount?.toString() || '',
-    description: transaction?.description || '',
-    category: transaction?.category || '',
-    account: transaction?.account || accounts[0]?.id || '',
-    type: transaction?.type || 'expense' as 'income' | 'expense',
-    date: transaction?.date || format(new Date(), 'yyyy-MM-dd'),
-    tags: transaction?.tags || [] as string[],
-  })
-  
-  const [quickInput, setQuickInput] = useState('')
-  
+    amount: transaction?.amount?.toString() || "",
+    description: transaction?.description || "",
+    category: transaction?.category || "",
+    account: transaction?.account || accounts[0]?.id || "",
+    type: transaction?.type || ("expense" as "income" | "expense"),
+    date: transaction?.date || format(new Date(), "yyyy-MM-dd"),
+    tags: transaction?.tags || ([] as string[]),
+  });
+
+  const [quickInput, setQuickInput] = useState("");
+
   useEffect(() => {
     if (accounts.length > 0 && !formData.account) {
-      setFormData(prev => ({ ...prev, account: accounts[0].id }))
+      setFormData((prev) => ({ ...prev, account: accounts[0].id }));
     }
-  }, [accounts, formData.account])
-  
+  }, [accounts, formData.account]);
+
   const handleQuickInput = (input: string) => {
-    setQuickInput(input)
-    const parsed = parseAmount(input)
-    
+    setQuickInput(input);
+    const parsed = parseAmount(input);
+
     if (parsed) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         amount: parsed.amount.toString(),
         description: parsed.description,
-      }))
-      
-      const detectedCategory = autoDetectCategory(parsed.description)
+      }));
+
+      const detectedCategory = autoDetectCategory(parsed.description);
       if (detectedCategory) {
-        const category = categories.find(c => c.name === detectedCategory)
+        const category = categories.find((c) => c.name === detectedCategory);
         if (category) {
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
             category: category.id,
             type: category.type,
-          }))
-          
-          const suggestedTags = suggestTags(parsed.description, detectedCategory)
+          }));
+
+          const suggestedTags = suggestTags(
+            parsed.description,
+            detectedCategory,
+          );
           if (suggestedTags.length > 0) {
-            setFormData(prev => ({
+            setFormData((prev) => ({
               ...prev,
               tags: suggestedTags,
-            }))
+            }));
           }
         }
       }
     }
-  }
-  
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    const amount = parseCurrency(formData.amount)
+    e.preventDefault();
+
+    const amount = parseCurrency(formData.amount);
     if (amount <= 0) {
-      toast.error('Пожалуйста, введите корректную сумму')
-      return
+      toast.error("Пожалуйста, введите корректную сумму");
+      return;
     }
-    
+
     if (!formData.category) {
-      toast.error('Пожалуйста, выберите категорию')
-      return
+      toast.error("Пожалуйста, выберите категорию");
+      return;
     }
-    
+
+    setIsSubmitting(true);
+    setSubmitSuccess(false);
+    setSubmitError(false);
+
     const data = {
       amount,
       description: formData.description,
@@ -113,24 +134,37 @@ export function TransactionForm({ transaction, onSuccess, onCancel }: Transactio
       date: formData.date,
       tags: formData.tags,
       isRecurring: false,
-    }
-    
+    };
+
     try {
       if (transaction) {
-        await updateTransaction.mutateAsync({ id: transaction.id, updates: data })
-        toast.success('Операция обновлена')
+        await updateTransaction.mutateAsync({
+          id: transaction.id,
+          updates: data,
+        });
+        toast.success("Операция обновлена");
       } else {
-        await addTransaction.mutateAsync(data)
-        toast.success('Операция добавлена')
+        await addTransaction.mutateAsync(data);
+        toast.success("Операция добавлена");
       }
-      onSuccess?.()
+      setSubmitSuccess(true);
+      setTimeout(() => {
+        setSubmitSuccess(false);
+        onSuccess?.();
+      }, 1000);
     } catch (error) {
-      toast.error('Не удалось сохранить операцию')
+      toast.error("Не удалось сохранить операцию");
+      setSubmitError(true);
+      setTimeout(() => {
+        setSubmitError(false);
+      }, 2000);
+    } finally {
+      setIsSubmitting(false);
     }
-  }
-  
-  const filteredCategories = categories.filter(c => c.type === formData.type)
-  
+  };
+
+  const filteredCategories = categories.filter((c) => c.type === formData.type);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
@@ -142,14 +176,14 @@ export function TransactionForm({ transaction, onSuccess, onCancel }: Transactio
           onChange={(e) => handleQuickInput(e.target.value)}
         />
       </div>
-      
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="type">Тип</Label>
           <Select
             value={formData.type}
-            onValueChange={(value: 'income' | 'expense') => 
-              setFormData(prev => ({ ...prev, type: value, category: '' }))
+            onValueChange={(value: "income" | "expense") =>
+              setFormData((prev) => ({ ...prev, type: value, category: "" }))
             }
           >
             <SelectTrigger id="type">
@@ -161,7 +195,7 @@ export function TransactionForm({ transaction, onSuccess, onCancel }: Transactio
             </SelectContent>
           </Select>
         </div>
-        
+
         <div>
           <Label htmlFor="amount">Сумма</Label>
           <Input
@@ -169,29 +203,35 @@ export function TransactionForm({ transaction, onSuccess, onCancel }: Transactio
             type="text"
             placeholder="0.00"
             value={formData.amount}
-            onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, amount: e.target.value }))
+            }
             required
           />
         </div>
       </div>
-      
+
       <div>
         <Label htmlFor="description">Описание</Label>
         <Input
           id="description"
           placeholder="На что это?"
           value={formData.description}
-          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, description: e.target.value }))
+          }
           required
         />
       </div>
-      
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="category">Категория</Label>
           <Select
             value={formData.category}
-            onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+            onValueChange={(value) =>
+              setFormData((prev) => ({ ...prev, category: value }))
+            }
           >
             <SelectTrigger id="category">
               <SelectValue placeholder="Выберите категорию" />
@@ -208,12 +248,14 @@ export function TransactionForm({ transaction, onSuccess, onCancel }: Transactio
             </SelectContent>
           </Select>
         </div>
-        
+
         <div>
           <Label htmlFor="account">Счет</Label>
           <Select
             value={formData.account}
-            onValueChange={(value) => setFormData(prev => ({ ...prev, account: value }))}
+            onValueChange={(value) =>
+              setFormData((prev) => ({ ...prev, account: value }))
+            }
           >
             <SelectTrigger id="account">
               <SelectValue placeholder="Выберите счет" />
@@ -228,7 +270,7 @@ export function TransactionForm({ transaction, onSuccess, onCancel }: Transactio
           </Select>
         </div>
       </div>
-      
+
       <div>
         <Label htmlFor="date">Дата</Label>
         <div className="relative">
@@ -236,23 +278,37 @@ export function TransactionForm({ transaction, onSuccess, onCancel }: Transactio
             id="date"
             type="date"
             value={formData.date}
-            onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, date: e.target.value }))
+            }
             required
           />
           <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
         </div>
       </div>
-      
+
       <div className="flex gap-2">
-        <Button type="submit" className="flex-1">
-          {transaction ? 'Обновить' : 'Добавить'} операцию
-        </Button>
+        <LoadingButton
+          type="submit"
+          className="flex-1"
+          isLoading={isSubmitting}
+          loadingText={transaction ? "Обновление..." : "Добавление..."}
+          success={submitSuccess}
+          error={submitError}
+        >
+          {transaction ? "Обновить" : "Добавить"} операцию
+        </LoadingButton>
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <LoadingButton
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
             Отмена
-          </Button>
+          </LoadingButton>
         )}
       </div>
     </form>
-  )
+  );
 }

@@ -1,9 +1,10 @@
-'use client'
+"use client";
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useState, useEffect } from 'react'
-import { Toaster } from 'sonner'
-import { initializeDatabase } from '@/lib/db'
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { Toaster } from "sonner";
+import { initializeDatabase } from "@/lib/db";
+import { ThemeProvider } from "./providers/ThemeProvider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -15,15 +16,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
             gcTime: 1000 * 60 * 10, // 10 minutes
           },
         },
-      })
-  )
-  
-  const [isReady, setIsReady] = useState(false)
-  
+      }),
+  );
+
+  const [isReady, setIsReady] = useState(false);
+
   useEffect(() => {
-    initializeDatabase().then(() => setIsReady(true))
-  }, [])
-  
+    initializeDatabase().then(() => setIsReady(true));
+  }, []);
+
   if (!isReady) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -32,13 +33,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
           <p className="text-gray-500">Initializing database...</p>
         </div>
       </div>
-    )
+    );
   }
-  
+
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
-      <Toaster position="bottom-right" />
+      <ThemeProvider>
+        {children}
+        <Toaster position="bottom-right" />
+      </ThemeProvider>
     </QueryClientProvider>
-  )
+  );
 }

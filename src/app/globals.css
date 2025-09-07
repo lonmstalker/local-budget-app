@@ -109,12 +109,22 @@
 @layer base {
   * {
     border-color: hsl(var(--border));
+    transition:
+      border-color 0.3s ease,
+      background-color 0.3s ease,
+      color 0.3s ease;
   }
 
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+  }
+
+  html.dark {
+    color-scheme: dark;
   }
 }
 
